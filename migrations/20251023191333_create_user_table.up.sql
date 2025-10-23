@@ -6,6 +6,6 @@ CREATE TABLE users (
     lastname VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     balance BIGINT NOT NULL DEFAULT 0,
-    created_at TIMESTAMPZ NOT NULL DEFAULT current_timestamp,
-    updated_at TIMESTAMPZ NOT NULL DEFAULT current_timestamp
+    created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 );
