@@ -1,0 +1,14 @@
+[package]
+name = "moneyflow"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sqlx = { version = "0.8", features = [
+  "runtime-tokio",
+  "tls-rustls",
+  "postgres",
+  "chrono",
+] }
+actix-web = "4"
+serde = "1.0.228"
