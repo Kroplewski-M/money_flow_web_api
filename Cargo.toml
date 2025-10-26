@@ -9,8 +9,10 @@ sqlx = { version = "0.8", features = [
   "tls-rustls",
   "postgres",
   "chrono",
+  "uuid",
 ] }
 actix-web = "4"
 serde = "1.0.228"
 tokio = { version = "1.48.0", features = ["full"] }
 dotenv = "0.15.0"
+bcrypt = "0.17.1"

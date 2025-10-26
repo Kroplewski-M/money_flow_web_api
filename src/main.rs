@@ -5,7 +5,9 @@ use std::env;
 use crate::controllers::{auth, me};
 use crate::models::shared::AppState;
 mod controllers;
+mod data;
 mod models;
+mod services;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
