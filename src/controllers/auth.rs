@@ -1,5 +1,8 @@
 use crate::{
-    models::{auth::SignUpRequest, shared::AppState},
+    models::{
+        auth::{SignInRequest, SignUpRequest},
+        shared::AppState,
+    },
     services,
 };
 use actix_web::{HttpResponse, Responder, post, web};
@@ -15,6 +18,6 @@ pub async fn sign_up(state: web::Data<AppState>, data: web::Json<SignUpRequest>)
 }
 
 #[post("/auth/sign-in")]
-pub async fn sign_in() -> impl Responder {
+pub async fn sign_in(state: web::Data<AppState>, data: web::Json<SignInRequest>) -> impl Responder {
     "sign-in"
 }

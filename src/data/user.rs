@@ -1,14 +1,14 @@
 use bcrypt::{DEFAULT_COST, hash};
 use sqlx::types::uuid;
 
-use crate::models::auth::SignUpRequest;
+use crate::models::{auth::SignUpRequest, shared::User};
 
-pub async fn exists_with_email(db: &sqlx::PgPool, email: &str) -> bool {
+pub async fn exists_with_email(pool: &sqlx::PgPool, email: &str) -> bool {
     let row = sqlx::query!(
         "SELECT EXISTS(SELECT id FROM users WHERE email = $1) as exists",
         email
     )
-    .fetch_one(db)
+    .fetch_one(pool)
     .await
     .unwrap();
 
@@ -35,4 +35,16 @@ pub async fn create_user(
     .await?;
 
     Ok(record.id)
+}
+pub async fn get_user_from_email(pool: &sqlx::PgPool, email: &str) -> Option<User> {
+    sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
+        .fetch_one(pool)
+        .await
+        .map_or_else(
+            |err| {
+                tracing::error!("Failed to fetch user by email '{}': {:?}", email, err);
+                None
+            },
+            Some,
+        )
 }

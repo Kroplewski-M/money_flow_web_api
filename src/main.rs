@@ -19,6 +19,9 @@ async fn main() -> std::io::Result<()> {
 
     let state = web::Data::new(AppState { db: pool });
 
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())

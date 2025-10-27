@@ -3,7 +3,10 @@ use sqlx::PgPool;
 
 use crate::{
     data,
-    models::{auth::SignUpRequest, shared::ServiceResponse},
+    models::{
+        auth::{SignInRequest, SignUpRequest},
+        shared::ServiceResponse,
+    },
 };
 
 pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> ServiceResponse {
@@ -29,4 +32,8 @@ pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> ServiceResponse 
             status: StatusCode::INTERNAL_SERVER_ERROR,
         },
     }
+}
+pub async fn sign_in(pool: &PgPool, request: &SignInRequest) {
+    let email = request.email.as_str();
+    let user = data::user::get_user_from_email(&pool, email).await;
 }
