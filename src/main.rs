@@ -6,9 +6,9 @@ use crate::controllers::{auth, me};
 use crate::models::shared::AppState;
 mod controllers;
 mod data;
+mod middleware;
 mod models;
 mod services;
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -18,7 +18,6 @@ async fn main() -> std::io::Result<()> {
         .expect("could not make a connection to the database");
 
     let state = web::Data::new(AppState { db: pool });
-
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();

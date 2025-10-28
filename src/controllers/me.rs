@@ -1,14 +1,21 @@
-use actix_web::{Responder, get, post, web};
+use actix_web::{Responder, get, middleware::from_fn, post, web};
+
+use crate::middleware::auth;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
-    cfg.service(profile).service(update_profile);
+    cfg.service(
+        web::scope("/me")
+            .wrap(from_fn(auth::verified_jwt))
+            .service(profile)
+            .service(update_profile),
+    );
 }
 
-#[get("/me")]
+#[get("")]
 pub async fn profile() -> impl Responder {
     "profile"
 }
-#[post("/me")]
+#[post("")]
 pub async fn update_profile() -> impl Responder {
     "update profile"
 }
