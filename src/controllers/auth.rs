@@ -1,7 +1,7 @@
 use crate::{
     models::{
         auth::{SignInRequest, SignUpRequest},
-        shared::AppState,
+        shared::{AppState, SignInError},
     },
     services,
 };
@@ -18,6 +18,10 @@ pub async fn sign_up(state: web::Data<AppState>, data: web::Json<SignUpRequest>)
 }
 
 #[post("/auth/sign-in")]
-pub async fn sign_in(state: web::Data<AppState>, data: web::Json<SignInRequest>) -> impl Responder {
-    "sign-in"
+pub async fn sign_in(
+    state: web::Data<AppState>,
+    data: web::Json<SignInRequest>,
+) -> Result<impl Responder, SignInError> {
+    let result = services::auth::sign_in(&state.db, &data).await?;
+    Ok(HttpResponse::Ok().json(serde_json::json!({"token": result})))
 }
