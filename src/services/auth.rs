@@ -38,7 +38,7 @@ pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> ServiceResponse 
 }
 pub async fn sign_in(pool: &PgPool, request: &SignInRequest) -> Result<String, SignInError> {
     let email = request.email.as_str();
-    let user = data::user::get_user_from_email(&pool, email).await;
+    let user = data::user::get_user_from_email(pool, email).await;
 
     let user = user.ok_or(SignInError::InvalidCredentials)?;
 

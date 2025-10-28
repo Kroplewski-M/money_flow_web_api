@@ -6,10 +6,8 @@ use crate::{
     services,
 };
 use actix_web::{
-    HttpResponse, Responder,
-    http::StatusCode,
-    post,
-    web::{self, Json},
+    HttpResponse, Responder, post,
+    web::{self},
 };
 use validator::Validate;
 
