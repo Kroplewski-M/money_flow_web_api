@@ -57,3 +57,32 @@ async fn test_sign_up_and_sign_in_controller(pool: PgPool) {
     let body: serde_json::Value = test::read_body_json(resp).await;
     assert!(body.get("token").is_some());
 }
+
+#[sqlx::test]
+async fn test_sign_up_invalid_input(pool: PgPool) {
+    unsafe {
+        std::env::set_var("JWT_SECRET", "super_secret_for_tests");
+    }
+
+    let app_state = AppState { db: pool };
+    let app = test::init_service(
+        App::new()
+            .app_data(actix_web::web::Data::new(app_state))
+            .configure(configure),
+    )
+    .await;
+
+    // Missing email should trigger BadRequest
+    let invalid_signup = serde_json::json!({
+        "firstname": "X",
+        "lastname": "Y",
+        "password": "pw"
+    });
+
+    let req = test::TestRequest::post()
+        .uri("/auth/sign-up")
+        .set_json(&invalid_signup)
+        .to_request();
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+}
