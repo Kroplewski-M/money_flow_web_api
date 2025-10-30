@@ -1,6 +1,7 @@
-use actix_web::{HttpRequest, Responder, get, middleware::from_fn, post, web};
+use actix_web::{HttpRequest, HttpResponse, Responder, get, middleware::from_fn, post, web};
+use sqlx::PgPool;
 
-use crate::{middleware::auth, utils::get_user_id};
+use crate::{middleware::auth, models::shared::AppState, services::user, utils::get_user_id};
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -12,10 +13,15 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 }
 
 #[get("")]
-pub async fn profile(req: HttpRequest) -> impl Responder {
+pub async fn profile(state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
     let user_id = get_user_id(req);
+    let user = user::get_user_from_id(&state.db, user_id).await;
 
-    format!("profile - user id {}", &user_id)
+    match user {
+        Ok(user) => HttpResponse::Ok().json(&user),
+        Err(err) => HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()})),
+    }
 }
 #[post("")]
 pub async fn update_profile() -> impl Responder {

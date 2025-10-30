@@ -41,7 +41,7 @@ impl fmt::Display for ServiceStatus {
         write!(f, "{message}")
     }
 }
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, Serialize)]
 pub struct User {
     pub id: uuid::Uuid,
     pub email: String,
