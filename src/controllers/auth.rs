@@ -21,7 +21,11 @@ pub async fn sign_up(state: web::Data<AppState>, data: web::Json<SignUpRequest>)
         return HttpResponse::BadRequest().json(serde_json::json!({"errors": errors}));
     }
     let result = services::auth::sign_up(&state.db, &data).await;
-    HttpResponse::build(result.status).json(&result)
+    match result {
+        Ok(id) => HttpResponse::Created().json(serde_json::json!({"success": true, "user_id": id})),
+        Err(err) => HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()})),
+    }
 }
 
 #[post("/auth/sign-in")]

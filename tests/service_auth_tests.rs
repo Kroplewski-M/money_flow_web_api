@@ -1,4 +1,3 @@
-use actix_web::http::StatusCode;
 use moneyflow::{
     models::{
         auth::{SignInRequest, SignUpRequest},
@@ -27,8 +26,7 @@ async fn test_sign_up_and_sign_in(pool: PgPool) {
     let signup_response = auth::sign_up(&pool, &signup_request).await;
 
     // Assert sign-up succeeded
-    assert!(signup_response.success);
-    assert_eq!(signup_response.status, StatusCode::CREATED);
+    assert!(signup_response.is_ok());
 
     // Act — Now try to sign in
     let signin_request = SignInRequest {

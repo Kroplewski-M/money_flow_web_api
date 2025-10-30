@@ -1,5 +1,6 @@
 use bcrypt::{DEFAULT_COST, hash};
 use sqlx::types::uuid;
+use uuid::Uuid;
 
 use crate::models::{auth::SignUpRequest, shared::User};
 
@@ -43,6 +44,18 @@ pub async fn get_user_from_email(pool: &sqlx::PgPool, email: &str) -> Option<Use
         .map_or_else(
             |err| {
                 tracing::error!("Failed to fetch user by email '{}': {:?}", email, err);
+                None
+            },
+            Some,
+        )
+}
+pub async fn get_user_from_id(pool: &sqlx::PgPool, id: &Uuid) -> Option<User> {
+    sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+        .fetch_one(pool)
+        .await
+        .map_or_else(
+            |err| {
+                tracing::error!("Failed to fetch user by id '{}': {:?}", id, err);
                 None
             },
             Some,

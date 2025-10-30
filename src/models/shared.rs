@@ -1,3 +1,5 @@
+use std::fmt;
+
 use actix_web::{HttpResponse, ResponseError, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use sqlx::{
@@ -11,12 +13,33 @@ use thiserror::Error;
 pub struct AppState {
     pub db: sqlx::PgPool,
 }
-#[derive(Serialize)]
-pub struct ServiceResponse {
-    pub success: bool,
-    pub message: String,
-    #[serde(skip_serializing)]
-    pub status: StatusCode,
+#[derive(Debug, Clone)]
+pub enum ServiceStatus {
+    Success,
+    Conflict,
+    NotFound,
+    InternalError,
+}
+impl ServiceStatus {
+    pub fn as_http_status(&self) -> StatusCode {
+        match self {
+            ServiceStatus::Success => StatusCode::OK,
+            ServiceStatus::Conflict => StatusCode::CONFLICT,
+            ServiceStatus::NotFound => StatusCode::NOT_FOUND,
+            ServiceStatus::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}
+impl fmt::Display for ServiceStatus {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let message = match self {
+            ServiceStatus::Success => "Success",
+            ServiceStatus::Conflict => "Conflict: resource already exists",
+            ServiceStatus::NotFound => "Not found: resource does not exist",
+            ServiceStatus::InternalError => "Internal server error",
+        };
+        write!(f, "{message}")
+    }
 }
 #[derive(Debug, FromRow)]
 pub struct User {
