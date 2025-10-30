@@ -20,7 +20,7 @@ pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> Result<Uuid, Ser
     }
     let result = data::user::create_user(pool, request).await;
     match result {
-        Ok(id) => return Ok(id),
+        Ok(id) => Ok(id),
         Err(_) => Err(ServiceStatus::InternalError),
     }
 }
@@ -29,7 +29,7 @@ pub async fn sign_in(pool: &PgPool, request: &SignInRequest) -> Result<String, S
     let user = data::user::get_user_from_email(pool, email).await;
 
     let user = user
-        .map_err(|err| SignInError::DatabaseError(err))?
+        .map_err(SignInError::DatabaseError)?
         .ok_or(SignInError::InvalidCredentials)?;
 
     let valid_password = bcrypt::verify(&request.password, &user.password_hash)
@@ -53,8 +53,9 @@ fn create_claims_for_user(user: User) -> Claims {
     }
 }
 fn try_create_token_for_claims(claims: Claims) -> Result<String, Error> {
+    let header = Header::new(jsonwebtoken::Algorithm::HS256);
     jsonwebtoken::encode(
-        &Header::default(),
+        &header,
         &claims,
         &EncodingKey::from_secret(
             env::var("JWT_SECRET")

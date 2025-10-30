@@ -1,5 +1,4 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, get, middleware::from_fn, post, web};
-use sqlx::PgPool;
 
 use crate::{middleware::auth, models::shared::AppState, services::user, utils::get_user_id};
 
