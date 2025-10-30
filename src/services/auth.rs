@@ -1,6 +1,5 @@
 use std::env;
 
-use actix_web::{dev::ServiceResponse, http::StatusCode};
 use jsonwebtoken::{EncodingKey, Header, errors::Error};
 use sqlx::{PgPool, types::chrono};
 use uuid::Uuid;
@@ -29,7 +28,9 @@ pub async fn sign_in(pool: &PgPool, request: &SignInRequest) -> Result<String, S
     let email = request.email.as_str();
     let user = data::user::get_user_from_email(pool, email).await;
 
-    let user = user.ok_or(SignInError::InvalidCredentials)?;
+    let user = user
+        .map_err(|err| SignInError::DatabaseError(err))?
+        .ok_or(SignInError::InvalidCredentials)?;
 
     let valid_password = bcrypt::verify(&request.password, &user.password_hash)
         .map_err(|e| SignInError::BcryptError(e.to_string()))?;

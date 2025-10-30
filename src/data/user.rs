@@ -37,27 +37,30 @@ pub async fn create_user(
 
     Ok(record.id)
 }
-pub async fn get_user_from_email(pool: &sqlx::PgPool, email: &str) -> Option<User> {
-    sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
-        .fetch_one(pool)
-        .await
-        .map_or_else(
-            |err| {
-                tracing::error!("Failed to fetch user by email '{}': {:?}", email, err);
-                None
-            },
-            Some,
-        )
+pub async fn get_user_from_email(
+    pool: &sqlx::PgPool,
+    email: &str,
+) -> Result<Option<User>, sqlx::Error> {
+    let result = sqlx::query_as!(User, "SELECT * FROM users WHERE email = $1", email)
+        .fetch_optional(pool)
+        .await;
+    match result {
+        Ok(user) => Ok(user),
+        Err(err) => {
+            tracing::error!("Failed to fetch user by email'{}': {:?}", email, err);
+            Err(err)
+        }
+    }
 }
-pub async fn get_user_from_id(pool: &sqlx::PgPool, id: &Uuid) -> Option<User> {
-    sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
-        .fetch_one(pool)
-        .await
-        .map_or_else(
-            |err| {
-                tracing::error!("Failed to fetch user by id '{}': {:?}", id, err);
-                None
-            },
-            Some,
-        )
+pub async fn get_user_from_id(pool: &sqlx::PgPool, id: &Uuid) -> Result<Option<User>, sqlx::Error> {
+    let result = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+        .fetch_optional(pool)
+        .await;
+    match result {
+        Ok(user) => Ok(user),
+        Err(err) => {
+            tracing::error!("Failed to fetch user by id '{}': {:?}", id, err);
+            Err(err)
+        }
+    }
 }

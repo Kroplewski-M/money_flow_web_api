@@ -14,6 +14,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 #[get("")]
 pub async fn profile(req: HttpRequest) -> impl Responder {
     let user_id = get_user_id(req);
+
     format!("profile - user id {}", &user_id)
 }
 #[post("")]
