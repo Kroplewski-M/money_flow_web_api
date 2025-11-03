@@ -47,6 +47,7 @@ pub struct User {
     pub email: String,
     pub firstname: String,
     pub lastname: String,
+    #[serde(skip_serializing)]
     pub password_hash: String,
     pub balance: i64,
     pub created_at: DateTime<Utc>,
