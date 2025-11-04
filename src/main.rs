@@ -2,7 +2,7 @@ use actix_web::{App, HttpServer, web};
 use dotenv::dotenv;
 use std::env;
 
-use crate::controllers::{auth, me};
+use crate::controllers::{auth, categories, me};
 use crate::models::shared::AppState;
 mod controllers;
 mod data;
@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(state.clone())
             .configure(auth::configure)
             .configure(me::configure)
+            .configure(categories::configure)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
