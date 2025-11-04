@@ -8,20 +8,20 @@ use crate::{
     data,
     models::{
         auth::{SignInRequest, SignUpRequest},
-        shared::{Claims, ServiceStatus, SignInError, User},
+        shared::{Claims, ServiceErrorStatus, SignInError, User},
     },
 };
 
-pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> Result<Uuid, ServiceStatus> {
+pub async fn sign_up(pool: &PgPool, request: &SignUpRequest) -> Result<Uuid, ServiceErrorStatus> {
     let email = request.email.as_str();
     let exists = data::user::exists_with_email(pool, email).await;
     if exists {
-        return Err(ServiceStatus::Conflict);
+        return Err(ServiceErrorStatus::Conflict);
     }
     let result = data::user::create_user(pool, request).await;
     match result {
         Ok(id) => Ok(id),
-        Err(_) => Err(ServiceStatus::InternalError),
+        Err(_) => Err(ServiceErrorStatus::InternalError),
     }
 }
 pub async fn sign_in(pool: &PgPool, request: &SignInRequest) -> Result<String, SignInError> {

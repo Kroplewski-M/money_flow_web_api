@@ -14,29 +14,26 @@ pub struct AppState {
     pub db: sqlx::PgPool,
 }
 #[derive(Debug, Clone)]
-pub enum ServiceStatus {
-    Success,
+pub enum ServiceErrorStatus {
     Conflict,
     NotFound,
     InternalError,
 }
-impl ServiceStatus {
+impl ServiceErrorStatus {
     pub fn as_http_status(&self) -> StatusCode {
         match self {
-            ServiceStatus::Success => StatusCode::OK,
-            ServiceStatus::Conflict => StatusCode::CONFLICT,
-            ServiceStatus::NotFound => StatusCode::NOT_FOUND,
-            ServiceStatus::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
+            ServiceErrorStatus::Conflict => StatusCode::CONFLICT,
+            ServiceErrorStatus::NotFound => StatusCode::NOT_FOUND,
+            ServiceErrorStatus::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }
-impl fmt::Display for ServiceStatus {
+impl fmt::Display for ServiceErrorStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let message = match self {
-            ServiceStatus::Success => "Success",
-            ServiceStatus::Conflict => "Conflict: resource already exists",
-            ServiceStatus::NotFound => "Not found: resource does not exist",
-            ServiceStatus::InternalError => "Internal server error",
+            ServiceErrorStatus::Conflict => "Conflict: resource already exists",
+            ServiceErrorStatus::NotFound => "Not found: resource does not exist",
+            ServiceErrorStatus::InternalError => "Internal server error",
         };
         write!(f, "{message}")
     }
