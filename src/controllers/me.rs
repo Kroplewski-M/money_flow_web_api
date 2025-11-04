@@ -4,7 +4,7 @@ use crate::{
     middleware::auth,
     models::shared::{AppState, UpdateProfileReq},
     services::user,
-    utils::get_user_id,
+    utils::{get_authenticated_user, get_user_id},
 };
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
@@ -18,7 +18,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
 #[get("")]
 pub async fn profile(state: web::Data<AppState>, req: HttpRequest) -> impl Responder {
-    let user_id = get_user_id(req);
+    let user_id = get_user_id(&req);
     let user = user::get_user_from_id(&state.db, user_id).await;
 
     match user {
@@ -32,12 +32,12 @@ pub async fn update_profile(
     state: web::Data<AppState>,
     req: HttpRequest,
     form: web::Json<UpdateProfileReq>,
-) -> impl Responder {
-    let user_id = get_user_id(req);
-    let res = user::update_user_from_id(&state.db, &user_id, &form).await;
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let res = user::update_user_from_id(&state.db, &user.id, &form).await;
     match res {
-        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": "true"})),
-        Err(err) => HttpResponse::build(err.as_http_status())
-            .json(serde_json::json!({"success": false, "error": err.to_string()})),
+        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"success": "true"}))),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
     }
 }
