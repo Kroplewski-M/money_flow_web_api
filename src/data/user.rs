@@ -2,10 +2,7 @@ use bcrypt::{DEFAULT_COST, hash};
 use sqlx::types::uuid;
 use uuid::Uuid;
 
-use crate::models::{
-    auth::SignUpRequest,
-    shared::{UpdateProfileReq, User},
-};
+use crate::models::{auth::SignUpRequest, shared::User, user::UpdateProfileReq};
 
 pub async fn exists_with_email(pool: &sqlx::PgPool, email: &str) -> bool {
     let row = sqlx::query!(

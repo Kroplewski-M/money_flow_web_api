@@ -2,7 +2,7 @@ use actix_web::{HttpRequest, HttpResponse, Responder, get, middleware::from_fn, 
 
 use crate::{
     middleware::auth,
-    models::shared::{AppState, UpdateProfileReq},
+    models::{shared::AppState, user::UpdateProfileReq},
     services::user,
     utils::{get_authenticated_user, get_user_id},
 };
