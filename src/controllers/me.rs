@@ -1,6 +1,11 @@
 use actix_web::{HttpRequest, HttpResponse, Responder, get, middleware::from_fn, post, web};
 
-use crate::{middleware::auth, models::shared::AppState, services::user, utils::get_user_id};
+use crate::{
+    middleware::auth,
+    models::shared::{AppState, UpdateProfileReq},
+    services::user,
+    utils::get_user_id,
+};
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -23,6 +28,16 @@ pub async fn profile(state: web::Data<AppState>, req: HttpRequest) -> impl Respo
     }
 }
 #[post("")]
-pub async fn update_profile() -> impl Responder {
-    "update profile"
+pub async fn update_profile(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    form: web::Json<UpdateProfileReq>,
+) -> impl Responder {
+    let user_id = get_user_id(req);
+    let res = user::update_user_from_id(&state.db, &user_id, &form).await;
+    match res {
+        Ok(_) => HttpResponse::Ok().json(serde_json::json!({"success": "true"})),
+        Err(err) => HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()})),
+    }
 }

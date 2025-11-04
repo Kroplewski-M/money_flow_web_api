@@ -2,7 +2,10 @@ use bcrypt::{DEFAULT_COST, hash};
 use sqlx::types::uuid;
 use uuid::Uuid;
 
-use crate::models::{auth::SignUpRequest, shared::User};
+use crate::models::{
+    auth::SignUpRequest,
+    shared::{UpdateProfileReq, User},
+};
 
 pub async fn exists_with_email(pool: &sqlx::PgPool, email: &str) -> bool {
     let row = sqlx::query!(
@@ -63,4 +66,24 @@ pub async fn get_user_from_id(pool: &sqlx::PgPool, id: &Uuid) -> Result<Option<U
             Err(err)
         }
     }
+}
+pub async fn update_user_from_id(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    update_details: &UpdateProfileReq,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+        UPDATE users
+        SET firstname = $1,
+            lastname = $2
+        WHERE id = $3
+    "#,
+        update_details.firstname,
+        update_details.lastname,
+        user_id
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
 }
