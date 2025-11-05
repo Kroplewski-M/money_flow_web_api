@@ -1,6 +1,8 @@
-use actix_web::{Responder, delete, get, middleware::from_fn, post, put, web};
+use actix_web::{
+    HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
+};
 
-use crate::middleware::auth;
+use crate::{data, middleware::auth, models::shared::AppState, utils::get_authenticated_user};
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -14,8 +16,18 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     );
 }
 #[get("")]
-pub async fn index() -> impl Responder {
-    "categories: list"
+pub async fn index(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let categories = data::categories::get_categories_for_user(&state.db, &user.id).await;
+
+    match categories {
+        Ok(res) => Ok(HttpResponse::Ok().json(res)),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 #[post("")]
 pub async fn create() -> impl Responder {
