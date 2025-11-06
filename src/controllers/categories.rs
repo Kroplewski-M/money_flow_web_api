@@ -1,8 +1,13 @@
 use actix_web::{
-    HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
+    App, HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
 };
 
-use crate::{data, middleware::auth, models::shared::AppState, utils::get_authenticated_user};
+use crate::{
+    middleware::auth,
+    models::{categories::CreateCategoryRequest, shared::AppState},
+    services::categories,
+    utils::get_authenticated_user,
+};
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -21,7 +26,7 @@ pub async fn index(
     req: HttpRequest,
 ) -> Result<impl Responder, actix_web::Error> {
     let user = get_authenticated_user(&req, &state.db).await?;
-    let categories = data::categories::get_categories_for_user(&state.db, &user.id).await;
+    let categories = categories::get_categories_for_user(&state.db, &user.id).await;
 
     match categories {
         Ok(res) => Ok(HttpResponse::Ok().json(res)),
@@ -30,8 +35,18 @@ pub async fn index(
     }
 }
 #[post("")]
-pub async fn create() -> impl Responder {
-    "categories: create"
+pub async fn create(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    data: web::Json<CreateCategoryRequest>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = categories::create_category_for_user(&state.db, &user.id, &data).await;
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"success": "true"}))),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 #[get("/show/{id}")]
 pub async fn show() -> impl Responder {
