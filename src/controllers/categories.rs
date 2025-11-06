@@ -1,6 +1,7 @@
 use actix_web::{
     App, HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
 };
+use validator::Validate;
 
 use crate::{
     middleware::auth,
@@ -40,6 +41,9 @@ pub async fn create(
     req: HttpRequest,
     data: web::Json<CreateCategoryRequest>,
 ) -> Result<impl Responder, actix_web::Error> {
+    if let Err(errors) = data.validate() {
+        return Ok(HttpResponse::BadRequest().json(serde_json::json!({"errors": errors})));
+    }
     let user = get_authenticated_user(&req, &state.db).await?;
     let result = categories::create_category_for_user(&state.db, &user.id, &data).await;
     match result {

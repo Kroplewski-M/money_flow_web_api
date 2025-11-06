@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Serialize)]
 pub struct Category {
@@ -12,8 +13,9 @@ pub struct Category {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct CreateCategoryRequest {
+    #[validate(length(min = 1, message = "title is required"))]
     pub title: String,
     pub description: String,
 }

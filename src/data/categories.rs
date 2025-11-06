@@ -33,7 +33,10 @@ pub async fn create_category_for_user(
     )
     .execute(pool)
     .await
-    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    .map_err(|e| {
+        tracing::error!("Failed to insert category for user {}: {:?}", user_id, e);
+        ServiceErrorStatus::InternalError
+    })?;
 
     Ok(())
 }
