@@ -36,3 +36,10 @@ pub async fn edit_category_for_user(
 ) -> Result<Category, ServiceErrorStatus> {
     data::categories::edit_category_for_user(pool, user_id, category).await
 }
+pub async fn delete_category_for_user(
+    pool: &PgPool,
+    user_id: &Uuid,
+    category_id: &Uuid,
+) -> Result<(), ServiceErrorStatus> {
+    data::categories::delete_category_for_user(pool, user_id, category_id).await
+}

@@ -91,6 +91,16 @@ pub async fn edit(
     }
 }
 #[delete("/delete/{id}")]
-pub async fn delete() -> impl Responder {
-    "categories: delete"
+pub async fn delete(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = categories::delete_category_for_user(&state.db, &user.id, &id).await;
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"success": "true"}))),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
