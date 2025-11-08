@@ -33,6 +33,6 @@ pub async fn edit_category_for_user(
     pool: &PgPool,
     user_id: &Uuid,
     category: &EditCategoryRequest,
-) -> Result<(), ServiceErrorStatus> {
+) -> Result<Category, ServiceErrorStatus> {
     data::categories::edit_category_for_user(pool, user_id, category).await
 }

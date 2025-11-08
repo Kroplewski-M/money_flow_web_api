@@ -60,20 +60,22 @@ pub async fn edit_category_for_user(
     pool: &sqlx::PgPool,
     user_id: &Uuid,
     category: &EditCategoryRequest,
-) -> Result<(), ServiceErrorStatus> {
-    sqlx::query!(
+) -> Result<Category, ServiceErrorStatus> {
+    let updated = sqlx::query_as!(
+        Category,
         "UPDATE categories SET title = $1, description = $2
-                  WHERE id = $3 AND user_id = $4",
+                  WHERE id = $3 AND user_id = $4
+        RETURNING *",
         category.title,
         category.description,
         category.id,
         user_id
     )
-    .execute(pool)
+    .fetch_one(pool)
     .await
     .map_err(|e| {
         tracing::error!("Failed to insert category for user {}: {:?}", user_id, e);
         ServiceErrorStatus::InternalError
     })?;
-    Ok(())
+    Ok(updated)
 }

@@ -6,7 +6,10 @@ use validator::Validate;
 
 use crate::{
     middleware::auth,
-    models::{categories::CreateCategoryRequest, shared::AppState},
+    models::{
+        categories::{CreateCategoryRequest, EditCategoryRequest},
+        shared::AppState,
+    },
     services::categories,
     utils::get_authenticated_user,
 };
@@ -73,9 +76,19 @@ pub async fn show(
             .json(serde_json::json!({"success": false, "error": err.to_string()}))),
     }
 }
-#[put("/edit/{id}")]
-pub async fn edit() -> impl Responder {
-    "categories: edit"
+#[put("/edit")]
+pub async fn edit(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    data: web::Json<EditCategoryRequest>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = categories::edit_category_for_user(&state.db, &user.id, &data).await;
+    match result {
+        Ok(res) => Ok(HttpResponse::Ok().json(res)),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 #[delete("/delete/{id}")]
 pub async fn delete() -> impl Responder {
