@@ -1,5 +1,5 @@
 use actix_web::{
-    App, HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
+    HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
 };
 use uuid::Uuid;
 use validator::Validate;
