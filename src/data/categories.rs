@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::models::{
-    categories::{Category, CreateCategoryRequest},
+    categories::{Category, CreateCategoryRequest, EditCategoryRequest},
     shared::ServiceErrorStatus,
 };
 
@@ -19,6 +19,22 @@ pub async fn get_categories_for_user(
     .map_err(|_| ServiceErrorStatus::InternalError)?;
 
     Ok(categories)
+}
+pub async fn get_category_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    category_id: &Uuid,
+) -> Result<Option<Category>, ServiceErrorStatus> {
+    let category = sqlx::query_as!(
+        Category,
+        "SELECT * FROM categories WHERE user_id = $1 AND id = $2",
+        user_id,
+        category_id
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(category)
 }
 pub async fn create_category_for_user(
     pool: &sqlx::PgPool,
@@ -38,5 +54,26 @@ pub async fn create_category_for_user(
         ServiceErrorStatus::InternalError
     })?;
 
+    Ok(())
+}
+pub async fn edit_category_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    category: &EditCategoryRequest,
+) -> Result<(), ServiceErrorStatus> {
+    sqlx::query!(
+        "UPDATE categories SET title = $1, description = $2
+                  WHERE id = $3 AND user_id = $4",
+        category.title,
+        category.description,
+        category.id,
+        user_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to insert category for user {}: {:?}", user_id, e);
+        ServiceErrorStatus::InternalError
+    })?;
     Ok(())
 }

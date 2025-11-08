@@ -19,3 +19,10 @@ pub struct CreateCategoryRequest {
     pub title: String,
     pub description: String,
 }
+#[derive(Deserialize, Validate)]
+pub struct EditCategoryRequest {
+    pub id: Uuid,
+    #[validate(length(min = 1, message = "title is required"))]
+    pub title: String,
+    pub description: String,
+}

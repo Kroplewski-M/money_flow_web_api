@@ -1,6 +1,7 @@
 use actix_web::{
     App, HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
 };
+use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
@@ -53,8 +54,24 @@ pub async fn create(
     }
 }
 #[get("/show/{id}")]
-pub async fn show() -> impl Responder {
-    "categories: show"
+pub async fn show(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let category = categories::get_category_for_user(&state.db, &user.id, &id).await;
+    match category {
+        Ok(res) => {
+            if let Some(cat) = res {
+                Ok(HttpResponse::Ok().json(cat))
+            } else {
+                Ok(HttpResponse::NotFound().json(""))
+            }
+        }
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 #[put("/edit/{id}")]
 pub async fn edit() -> impl Responder {
