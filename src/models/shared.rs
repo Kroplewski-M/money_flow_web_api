@@ -18,6 +18,7 @@ pub enum ServiceErrorStatus {
     Conflict,
     NotFound,
     InternalError,
+    BadRequest(String),
 }
 impl ServiceErrorStatus {
     pub fn as_http_status(&self) -> StatusCode {
@@ -25,17 +26,18 @@ impl ServiceErrorStatus {
             ServiceErrorStatus::Conflict => StatusCode::CONFLICT,
             ServiceErrorStatus::NotFound => StatusCode::NOT_FOUND,
             ServiceErrorStatus::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
+            ServiceErrorStatus::BadRequest(_) => StatusCode::BAD_REQUEST,
         }
     }
 }
 impl fmt::Display for ServiceErrorStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let message = match self {
-            ServiceErrorStatus::Conflict => "Conflict: resource already exists",
-            ServiceErrorStatus::NotFound => "Not found: resource does not exist",
-            ServiceErrorStatus::InternalError => "Internal server error",
-        };
-        write!(f, "{message}")
+        match self {
+            ServiceErrorStatus::Conflict => write!(f, "Conflict: resource already exists"),
+            ServiceErrorStatus::NotFound => write!(f, "Not found: resource does not exist"),
+            ServiceErrorStatus::InternalError => write!(f, "Internal server error"),
+            ServiceErrorStatus::BadRequest(message) => write!(f, "Bad Request: {}", message),
+        }
     }
 }
 #[derive(Debug, FromRow, Serialize)]

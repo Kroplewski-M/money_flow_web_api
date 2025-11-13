@@ -94,3 +94,20 @@ pub async fn delete_category_for_user(
     .map_err(|_| ServiceErrorStatus::InternalError)?;
     Ok(())
 }
+pub async fn update_category_balance_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    category_id: &Uuid,
+    amount: i64,
+) -> Result<(), ServiceErrorStatus> {
+    sqlx::query!(
+        "UPDATE categories SET balance = balance - $1 WHERE id = $2 AND user_id = $3",
+        amount,
+        category_id,
+        user_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(())
+}

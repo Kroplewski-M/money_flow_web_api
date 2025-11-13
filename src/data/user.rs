@@ -84,3 +84,17 @@ pub async fn update_user_from_id(
     .await?;
     Ok(())
 }
+pub async fn update_user_balance(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    cost: i64,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        "UPDATE users SET balance = balance - $1 WHERE id = $2",
+        cost,
+        user_id
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
+}
