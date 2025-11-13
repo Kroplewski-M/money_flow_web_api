@@ -41,14 +41,20 @@ pub async fn create_transaction_for_user(
     match category {
         Ok(Some(category)) if category.user_id == *user_id => {
             data::transactions::create_transaction_for_user(pool, user_id, transaction).await?;
-            data::user::update_user_balance(pool, user_id, transaction.amount)
-                .await
-                .map_err(|_| ServiceErrorStatus::InternalError)?;
+            data::user::update_user_balance(
+                pool,
+                user_id,
+                transaction.amount,
+                &transaction.type_name,
+            )
+            .await
+            .map_err(|_| ServiceErrorStatus::InternalError)?;
             data::categories::update_category_balance_for_user(
                 pool,
                 user_id,
                 &category.id,
                 transaction.amount,
+                &transaction.type_name,
             )
             .await
             .map_err(|_| ServiceErrorStatus::InternalError)?;

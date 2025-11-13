@@ -88,10 +88,16 @@ pub async fn update_user_balance(
     pool: &sqlx::PgPool,
     user_id: &Uuid,
     cost: i64,
+    type_name: &str,
 ) -> Result<(), sqlx::Error> {
+    let amount = match type_name.to_uppercase().as_str() {
+        "CREDIT" => cost, // add to balance
+        "DEBIT" => -cost, // subtract from balance
+        _ => return Err(sqlx::Error::Protocol("Invalid transaction type".into())),
+    };
     sqlx::query!(
-        "UPDATE users SET balance = balance - $1 WHERE id = $2",
-        cost,
+        "UPDATE users SET balance = balance + $1 WHERE id = $2",
+        amount,
         user_id
     )
     .execute(pool)

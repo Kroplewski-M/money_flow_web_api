@@ -98,10 +98,16 @@ pub async fn update_category_balance_for_user(
     pool: &sqlx::PgPool,
     user_id: &Uuid,
     category_id: &Uuid,
-    amount: i64,
+    cost: i64,
+    type_name: &str,
 ) -> Result<(), ServiceErrorStatus> {
+    let amount = match type_name.to_uppercase().as_str() {
+        "CREDIT" => cost, // add to balance
+        "DEBIT" => -cost, // subtract from balance
+        _ => return Err(ServiceErrorStatus::InternalError),
+    };
     sqlx::query!(
-        "UPDATE categories SET balance = balance - $1 WHERE id = $2 AND user_id = $3",
+        "UPDATE categories SET balance = balance + $1 WHERE id = $2 AND user_id = $3",
         amount,
         category_id,
         user_id
