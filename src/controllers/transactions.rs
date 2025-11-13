@@ -3,7 +3,9 @@ use actix_web::{
 };
 
 use crate::{
-    middleware::auth, models::shared::AppState, services::transactions,
+    middleware::auth,
+    models::{shared::AppState, transactions::CreateTransactionRequest},
+    services::transactions,
     utils::get_authenticated_user,
 };
 
@@ -32,8 +34,18 @@ pub async fn index(
     }
 }
 #[post("")]
-pub async fn create() -> Result<impl Responder, actix_web::Error> {
-    Ok("create")
+pub async fn create(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    transaction: web::Json<CreateTransactionRequest>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = transactions::create_transaction_for_user(&state.db, &user.id, &transaction).await;
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"success": "true"}))),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 
 #[get("/{id}")]
