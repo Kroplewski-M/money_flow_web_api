@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use validator::Validate;
 
 #[derive(Serialize)]
 pub struct Transaction {
@@ -14,9 +15,10 @@ pub struct Transaction {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Validate)]
 pub struct CreateTransactionRequest {
     pub category_id: Uuid,
+    #[validate(range(min = 1))]
     pub amount: i64,
     pub memo: String,
     pub type_name: String,

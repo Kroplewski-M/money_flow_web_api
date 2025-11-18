@@ -15,6 +15,14 @@ pub async fn get_transactions_for_user(
 ) -> Result<Vec<Transaction>, ServiceErrorStatus> {
     data::transactions::get_transactions_for_user(pool, user_id).await
 }
+pub async fn get_transaction_for_user(
+    pool: &PgPool,
+    user_id: &Uuid,
+    id: &Uuid,
+) -> Result<Option<Transaction>, ServiceErrorStatus> {
+    data::transactions::get_transaction_for_user(pool, user_id, id).await
+}
+
 pub async fn create_transaction_for_user(
     pool: &PgPool,
     user_id: &Uuid,

@@ -19,6 +19,24 @@ pub async fn get_transactions_for_user(
     .map_err(|_| ServiceErrorStatus::InternalError)?;
     Ok(transactions)
 }
+
+pub async fn get_transaction_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    id: &Uuid,
+) -> Result<Option<Transaction>, ServiceErrorStatus> {
+    let transaction = sqlx::query_as!(
+        Transaction,
+        "SELECT * FROM transactions WHERE user_id = $1 AND id = $2",
+        user_id,
+        id
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(transaction)
+}
+
 pub async fn create_transaction_for_user(
     pool: &sqlx::PgPool,
     user_id: &Uuid,

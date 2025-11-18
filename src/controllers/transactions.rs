@@ -1,6 +1,7 @@
 use actix_web::{
     HttpRequest, HttpResponse, Responder, delete, get, middleware::from_fn, post, put, web,
 };
+use uuid::Uuid;
 
 use crate::{
     middleware::auth,
@@ -49,8 +50,25 @@ pub async fn create(
 }
 
 #[get("/{id}")]
-pub async fn show() -> Result<impl Responder, actix_web::Error> {
-    Ok("show")
+pub async fn show(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = transactions::get_transaction_for_user(&state.db, &user.id, &id).await;
+    match result {
+        Ok(res) => {
+            if let Some(tran) = &res {
+                return Ok(HttpResponse::Ok().json(tran));
+            }
+            Ok(HttpResponse::NotFound().json(
+                serde_json::json!({"success": false, "error": "transaction not found for user"}),
+            ))
+        }
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 
 #[put("")]
