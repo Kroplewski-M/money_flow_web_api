@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::models::{
     shared::ServiceErrorStatus,
-    transactions::{CreateTransactionRequest, Transaction},
+    transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
 };
 
 pub async fn get_transactions_for_user(
@@ -56,4 +56,28 @@ pub async fn create_transaction_for_user(
     .await
     .map_err(|_| ServiceErrorStatus::InternalError)?;
     Ok(())
+}
+pub async fn edit_transaction_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    transaction: &UpdateTransactionsRequest,
+) -> Result<Option<Transaction>, ServiceErrorStatus> {
+    let updated = sqlx::query_as!(
+        Transaction,
+        "UPDATE transactions 
+                  SET memo = $1, description = $2 
+                  WHERE id = $3 AND user_id = $4
+         RETURNING *",
+        transaction.memo,
+        transaction.description,
+        transaction.id,
+        user_id
+    )
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to update category for user {}: {:?}", user_id, e);
+        ServiceErrorStatus::InternalError
+    })?;
+    Ok(updated)
 }

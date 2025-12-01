@@ -5,7 +5,7 @@ use crate::{
     data::{self, user::get_user_from_id},
     models::{
         shared::ServiceErrorStatus,
-        transactions::{CreateTransactionRequest, Transaction},
+        transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
     },
 };
 
@@ -22,7 +22,13 @@ pub async fn get_transaction_for_user(
 ) -> Result<Option<Transaction>, ServiceErrorStatus> {
     data::transactions::get_transaction_for_user(pool, user_id, id).await
 }
-
+pub async fn edit_transaction_for_user(
+    pool: &PgPool,
+    user_id: &Uuid,
+    transaction: &UpdateTransactionsRequest,
+) -> Result<Option<Transaction>, ServiceErrorStatus> {
+    data::transactions::edit_transaction_for_user(pool, user_id, transaction).await
+}
 pub async fn create_transaction_for_user(
     pool: &PgPool,
     user_id: &Uuid,

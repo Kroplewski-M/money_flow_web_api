@@ -74,7 +74,7 @@ pub async fn edit_category_for_user(
     .fetch_one(pool)
     .await
     .map_err(|e| {
-        tracing::error!("Failed to insert category for user {}: {:?}", user_id, e);
+        tracing::error!("Failed to update category for user {}: {:?}", user_id, e);
         ServiceErrorStatus::InternalError
     })?;
     Ok(updated)

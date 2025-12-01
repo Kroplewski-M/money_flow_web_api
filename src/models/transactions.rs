@@ -24,3 +24,9 @@ pub struct CreateTransactionRequest {
     pub type_name: String,
     pub description: Option<String>,
 }
+#[derive(Deserialize)]
+pub struct UpdateTransactionsRequest {
+    pub id: Uuid,
+    pub memo: String,
+    pub description: String,
+}

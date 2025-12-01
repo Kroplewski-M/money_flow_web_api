@@ -5,7 +5,10 @@ use uuid::Uuid;
 
 use crate::{
     middleware::auth,
-    models::{shared::AppState, transactions::CreateTransactionRequest},
+    models::{
+        shared::AppState,
+        transactions::{CreateTransactionRequest, UpdateTransactionsRequest},
+    },
     services::transactions,
     utils::get_authenticated_user,
 };
@@ -72,8 +75,25 @@ pub async fn show(
 }
 
 #[put("")]
-pub async fn edit() -> Result<impl Responder, actix_web::Error> {
-    Ok("edit")
+pub async fn edit(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    transaction: web::Json<UpdateTransactionsRequest>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = transactions::edit_transaction_for_user(&state.db, &user.id, &transaction).await;
+    match result {
+        Ok(res) => {
+            if let Some(tran) = &res {
+                return Ok(HttpResponse::Ok().json(tran));
+            }
+            Ok(HttpResponse::NotFound().json(
+                serde_json::json!({"success": false, "error": "transaction not found for user"}),
+            ))
+        }
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
 #[delete("/{id}")]
 pub async fn delete() -> Result<impl Responder, actix_web::Error> {
