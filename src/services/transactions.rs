@@ -53,7 +53,27 @@ pub async fn delete_transaction_for_user(
             "Infufficient balance",
         )));
     }
-    data::transactions::delete_transaction_for_user(pool, user_id, transaction_id).await
+    data::transactions::delete_transaction_for_user(pool, user_id, transaction_id)
+        .await
+        .map_err(|_| ServiceErrorStatus::InternalError)?;
+    let type_name = if transaction.type_name == "CREDIT" {
+        "DEBIT"
+    } else {
+        "CREDIT"
+    };
+    data::user::update_user_balance(pool, user_id, transaction.amount, type_name)
+        .await
+        .map_err(|_| ServiceErrorStatus::InternalError)?;
+    data::categories::update_category_balance_for_user(
+        pool,
+        user_id,
+        &category.id,
+        transaction.amount,
+        type_name,
+    )
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(())
 }
 pub async fn create_transaction_for_user(
     pool: &PgPool,
