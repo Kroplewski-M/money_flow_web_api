@@ -81,3 +81,18 @@ pub async fn edit_transaction_for_user(
     })?;
     Ok(updated)
 }
+pub async fn delete_transaction_for_user(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    transaction_id: &Uuid,
+) -> Result<(), ServiceErrorStatus> {
+    sqlx::query!(
+        "DELETE FROM transactions WHERE id = $1 AND user_id = $2",
+        transaction_id,
+        user_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(())
+}

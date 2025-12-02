@@ -2,7 +2,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
-    data::{self, user::get_user_from_id},
+    data::{self, categories::get_category_for_user, user::get_user_from_id},
     models::{
         shared::ServiceErrorStatus,
         transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
@@ -28,6 +28,32 @@ pub async fn edit_transaction_for_user(
     transaction: &UpdateTransactionsRequest,
 ) -> Result<Option<Transaction>, ServiceErrorStatus> {
     data::transactions::edit_transaction_for_user(pool, user_id, transaction).await
+}
+pub async fn delete_transaction_for_user(
+    pool: &PgPool,
+    user_id: &Uuid,
+    transaction_id: &Uuid,
+) -> Result<(), ServiceErrorStatus> {
+    let transaction = get_transaction_for_user(pool, user_id, transaction_id)
+        .await
+        .map_err(|_| ServiceErrorStatus::InternalError)?
+        .ok_or(ServiceErrorStatus::NotFound)?;
+    let user = get_user_from_id(pool, user_id)
+        .await
+        .map_err(|_| ServiceErrorStatus::InternalError)?
+        .ok_or(ServiceErrorStatus::NotFound)?;
+    let category = get_category_for_user(pool, user_id, &transaction.category_id)
+        .await
+        .map_err(|_| ServiceErrorStatus::InternalError)?
+        .ok_or(ServiceErrorStatus::NotFound)?;
+    if transaction.type_name == "CREDIT"
+        && (transaction.amount > user.balance || transaction.amount > category.balance)
+    {
+        return Err(ServiceErrorStatus::BadRequest(String::from(
+            "Infufficient balance",
+        )));
+    }
+    data::transactions::delete_transaction_for_user(pool, user_id, transaction_id).await
 }
 pub async fn create_transaction_for_user(
     pool: &PgPool,

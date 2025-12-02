@@ -96,6 +96,16 @@ pub async fn edit(
     }
 }
 #[delete("/{id}")]
-pub async fn delete() -> Result<impl Responder, actix_web::Error> {
-    Ok("delete")
+pub async fn delete(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let result = transactions::delete_transaction_for_user(&state.db, &user.id, &id).await;
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().json(serde_json::json!({"success": "true"}))),
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
 }
