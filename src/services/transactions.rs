@@ -7,6 +7,7 @@ use crate::{
         shared::ServiceErrorStatus,
         transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
     },
+    utils,
 };
 
 pub async fn get_transactions_for_user(
@@ -46,7 +47,7 @@ pub async fn delete_transaction_for_user(
         .await
         .map_err(|_| ServiceErrorStatus::InternalError)?
         .ok_or(ServiceErrorStatus::NotFound)?;
-    if transaction.type_name == "CREDIT"
+    if utils::is_credit(&transaction.type_name)
         && (transaction.amount > user.balance || transaction.amount > category.balance)
     {
         return Err(ServiceErrorStatus::BadRequest(String::from(
@@ -56,7 +57,7 @@ pub async fn delete_transaction_for_user(
     data::transactions::delete_transaction_for_user(pool, user_id, transaction_id)
         .await
         .map_err(|_| ServiceErrorStatus::InternalError)?;
-    let type_name = if transaction.type_name == "CREDIT" {
+    let type_name = if utils::is_credit(&transaction.type_name) {
         "DEBIT"
     } else {
         "CREDIT"
@@ -82,7 +83,7 @@ pub async fn create_transaction_for_user(
 ) -> Result<(), ServiceErrorStatus> {
     //checking user balance
     let user = get_user_from_id(pool, user_id).await.unwrap().unwrap();
-    if user.balance < transaction.amount && transaction.type_name == "DEBIT" {
+    if user.balance < transaction.amount && utils::is_debit(&transaction.type_name) {
         return Err(ServiceErrorStatus::BadRequest(String::from(
             "User does not have enough funds",
         )));
@@ -91,7 +92,7 @@ pub async fn create_transaction_for_user(
         data::categories::get_category_for_user(pool, user_id, &transaction.category_id).await;
     if let Ok(Some(cat)) = &category
         && cat.balance < transaction.amount
-        && transaction.type_name == "DEBIT"
+        && utils::is_debit(&transaction.type_name)
     {
         return Err(ServiceErrorStatus::BadRequest(String::from(
             "category does not have enough funds",

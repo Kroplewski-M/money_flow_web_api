@@ -1,11 +1,8 @@
 use uuid::Uuid;
 
-use crate::{
-    controllers::transactions,
-    models::{
-        shared::ServiceErrorStatus,
-        transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
-    },
+use crate::models::{
+    shared::ServiceErrorStatus,
+    transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
 };
 
 pub async fn get_transactions_for_user(

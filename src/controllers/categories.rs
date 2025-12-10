@@ -5,7 +5,6 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
-    controllers::transactions,
     middleware::auth,
     models::{
         categories::{CreateCategoryRequest, EditCategoryRequest},
@@ -23,7 +22,8 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .service(create)
             .service(show)
             .service(edit)
-            .service(delete),
+            .service(delete)
+            .service(transactions),
     );
 }
 #[get("")]
@@ -78,7 +78,7 @@ pub async fn show(
     }
 }
 #[get("{id}/transactions")]
-pub async fn get_transactions(
+pub async fn transactions(
     state: web::Data<AppState>,
     req: HttpRequest,
     id: web::Path<Uuid>,
