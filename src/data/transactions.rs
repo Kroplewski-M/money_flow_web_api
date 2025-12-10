@@ -1,8 +1,11 @@
 use uuid::Uuid;
 
-use crate::models::{
-    shared::ServiceErrorStatus,
-    transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
+use crate::{
+    controllers::transactions,
+    models::{
+        shared::ServiceErrorStatus,
+        transactions::{CreateTransactionRequest, Transaction, UpdateTransactionsRequest},
+    },
 };
 
 pub async fn get_transactions_for_user(
@@ -36,7 +39,22 @@ pub async fn get_transaction_for_user(
     .map_err(|_| ServiceErrorStatus::InternalError)?;
     Ok(transaction)
 }
-
+pub async fn get_transaction_for_user_category(
+    pool: &sqlx::PgPool,
+    user_id: &Uuid,
+    category_id: &Uuid,
+) -> Result<Vec<Transaction>, ServiceErrorStatus> {
+    let transactions = sqlx::query_as!(
+        Transaction,
+        "SELECT * FROM transactions WHERE user_id = $1 AND category_id = $2",
+        user_id,
+        category_id
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|_| ServiceErrorStatus::InternalError)?;
+    Ok(transactions)
+}
 pub async fn create_transaction_for_user(
     pool: &sqlx::PgPool,
     user_id: &Uuid,

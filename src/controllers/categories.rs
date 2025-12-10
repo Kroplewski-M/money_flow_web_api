@@ -5,6 +5,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::{
+    controllers::transactions,
     middleware::auth,
     models::{
         categories::{CreateCategoryRequest, EditCategoryRequest},
@@ -72,6 +73,21 @@ pub async fn show(
                 Ok(HttpResponse::NotFound().json(""))
             }
         }
+        Err(err) => Ok(HttpResponse::build(err.as_http_status())
+            .json(serde_json::json!({"success": false, "error": err.to_string()}))),
+    }
+}
+#[get("{id}/transactions")]
+pub async fn get_transactions(
+    state: web::Data<AppState>,
+    req: HttpRequest,
+    id: web::Path<Uuid>,
+) -> Result<impl Responder, actix_web::Error> {
+    let user = get_authenticated_user(&req, &state.db).await?;
+    let transactions =
+        categories::get_categoty_transactions_for_user(&state.db, &user.id, &id).await;
+    match transactions {
+        Ok(result) => Ok(HttpResponse::Ok().json(result)),
         Err(err) => Ok(HttpResponse::build(err.as_http_status())
             .json(serde_json::json!({"success": false, "error": err.to_string()}))),
     }

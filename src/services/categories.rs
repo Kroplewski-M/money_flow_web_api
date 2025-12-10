@@ -6,6 +6,7 @@ use crate::{
     models::{
         categories::{Category, CreateCategoryRequest, EditCategoryRequest},
         shared::ServiceErrorStatus,
+        transactions::Transaction,
     },
 };
 
@@ -14,6 +15,13 @@ pub async fn get_categories_for_user(
     user_id: &Uuid,
 ) -> Result<Vec<Category>, ServiceErrorStatus> {
     data::categories::get_categories_for_user(pool, user_id).await
+}
+pub async fn get_categoty_transactions_for_user(
+    pool: &PgPool,
+    user_id: &Uuid,
+    category_id: &Uuid,
+) -> Result<Vec<Transaction>, ServiceErrorStatus> {
+    data::transactions::get_transaction_for_user_category(pool, user_id, category_id).await
 }
 pub async fn get_category_for_user(
     pool: &PgPool,
